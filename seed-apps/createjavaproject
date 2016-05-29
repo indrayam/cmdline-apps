@@ -124,7 +124,7 @@ DELIM
 }
 
 
-function setupsmwebapp {
+function setupmvcwebapp {
 
     mkdir -p $projectname/src/main/java/$javapackagefolder
     mkdir -p $projectname/src/main/resources
@@ -398,7 +398,10 @@ DELIM
 }
 
 function showusage {
-    echo "Usage: <app|webapp|smwebapp|sbwebapp> <java package under src/main/java> <top-level project name>"   
+    echo "Usage: <app|webapp|mvcwebapp|sbwebapp> <java package under src/main/java> <top-level project name>" 
+    echo "webapp = Standard Servlet based Java Web Application"  
+    echo "mvcwebapp = Spring MVC based Java Web Application"
+    echo "sbwebapp" = Spring Boot based Java Web Application"
 }
 
 #Ensure we have the command-line parameters passed appropriately
@@ -421,8 +424,8 @@ if [ $typename == "app" ]; then
     setupapp
 elif [ $typename == "webapp" ]; then
     setupwebapp
-elif [ $typename == "smwebapp" ]; then
-    setupsmwebapp
+elif [ $typename == "mvcwebapp" ]; then
+    setupmvcwebapp
 elif [ $typename == "sbwebapp" ]; then
     setupsbwebapp
 else
