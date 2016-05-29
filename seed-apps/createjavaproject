@@ -1,0 +1,431 @@
+#!/bin/bash
+
+function setupapp {
+    mkdir -p $projectname/src/main/java/$javapackagefolder
+    mkdir -p $projectname/src/main/resources
+    mkdir -p $projectname/src/test/java/$javapackagefolder
+
+    cat > $projectname/build.gradle <<DELIM
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'application'
+
+group = '$javapackage'
+archivesBaseName = '$projectname'
+version = '1.0.0-SNAPSHOT'
+mainClassName = '$javapackage.TBD'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile "junit:junit:4.12"
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': archivesBaseName,
+                'Implementation-Version': version,
+                'Main-Class': mainClassName
+    }
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': archivesBaseName,
+                'Implementation-Version': version,
+                'Main-Class': mainClassName
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+DELIM
+
+    # Generate Sublime Text 3 Project File
+    gensublimeproject
+
+    # Generate Git Ignore File
+    gengitignore
+
+}
+
+function setupwebapp {
+
+    mkdir -p $projectname/src/main/java/$javapackagefolder
+    mkdir -p $projectname/src/main/resources
+    mkdir -p $projectname/src/main/webapp/WEB-INF
+    mkdir -p $projectname/src/main/webapp/css
+    mkdir -p $projectname/src/main/webapp/js
+    mkdir -p $projectname/src/main/webapp/images
+    mkdir -p $projectname/src/test/java/$javapackagefolder
+
+    cat > $projectname/src/main/webapp/WEB-INF/web.xml <<DELIM
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee 
+         http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+
+  <servlet>
+    <servlet-name>TBD</servlet-name>
+    <servlet-class>$javapackage.TBD</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>TBD</servlet-name>
+    <url-pattern>/TBD</url-pattern>
+  </servlet-mapping>
+
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+
+</web-app>
+DELIM
+
+    cat > $projectname/build.gradle <<DELIM
+apply plugin: 'war'
+apply plugin: 'jetty'
+apply plugin: 'eclipse-wtp'
+
+version = '1.0'
+def warTitle = '$projectname'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    providedCompile "javax.servlet:servlet-api:3.+"
+    runtime 'javax.servlet:jstl:1.1.2'
+}
+
+war {
+    baseName = warTitle
+    version = version
+}
+
+jettyRunWar {
+    httpPort = 8080
+    contextPath = ""
+}
+DELIM
+
+    # Generate Sublime Text 3 Project File
+    gensublimeproject
+
+    # Generate Git Ignore File
+    gengitignore
+
+}
+
+
+function setupsmwebapp {
+
+    mkdir -p $projectname/src/main/java/$javapackagefolder
+    mkdir -p $projectname/src/main/resources
+    mkdir -p $projectname/src/main/webapp
+    mkdir -p $projectname/src/main/webapp/WEB-INF
+    mkdir -p $projectname/src/main/webapp/css
+    mkdir -p $projectname/src/main/webapp/js
+    mkdir -p $projectname/src/main/webapp/images
+    mkdir -p $projectname/src/test/java/$javapackagefolder
+
+    cat > $projectname/src/main/webapp/WEB-INF/web.xml <<DELIM
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee 
+         http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+    
+    <servlet>
+        <servlet-name>$projectname</servlet-name>
+        <servlet-class>
+            org.springframework.web.servlet.DispatcherServlet
+        </servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+ 
+    <servlet-mapping>
+        <servlet-name>$projectname</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>/WEB-INF/$projectname-servlet.xml</param-value>
+    </context-param>
+</web-app>
+DELIM
+    cat > $projectname/src/main/webapp/WEB-INF/$projectname-servlet.xml <<DELIM
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans     
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc 
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd ">
+
+    <context:component-scan base-package="$javapackage" />
+
+    <mvc:annotation-driven />
+
+    <bean id="templateResolver" class="org.thymeleaf.templateresolver.ServletContextTemplateResolver">
+        <property name="prefix" value="/WEB-INF/templates/" />
+        <property name="suffix" value=".html" />
+        <property name="templateMode" value="HTML5" />
+    </bean>
+
+    <bean id="templateEngine" class="org.thymeleaf.spring4.SpringTemplateEngine">
+        <property name="templateResolver" ref="templateResolver" />
+    </bean>
+
+    <bean class="org.thymeleaf.spring4.view.ThymeleafViewResolver">
+        <property name="templateEngine" ref="templateEngine" />
+    </bean>
+
+    <mvc:resources mapping="/resources/**" location="/resources/" />
+</beans>
+DELIM
+
+    cat > $projectname/build.gradle <<DELIM
+apply plugin: 'war'
+apply plugin: 'jetty'
+apply plugin: 'eclipse-wtp'
+
+version = '1.0'
+def warTitle = '$projectname'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile("org.springframework:spring-webmvc:4.1.3.RELEASE")
+    compile("org.thymeleaf:thymeleaf-spring4:2.1.3.RELEASE")
+    providedCompile "javax.servlet:servlet-api:3.+"
+}
+
+war {
+    baseName = warTitle
+    version = version
+}
+
+jettyRunWar {
+    httpPort = 8080
+    contextPath = ""
+}
+DELIM
+
+    # Generate Sublime Text 3 Project File
+    gensublimeproject
+
+    # Generate Git Ignore File
+    gengitignore
+
+}
+
+function setupsbwebapp {
+
+    mkdir -p $projectname/src/main/java/$javapackagefolder
+    mkdir -p $projectname/src/main/resources
+    touch $projectname/src/main/resources/application.properties
+    mkdir -p $projectname/src/main/resources/templates
+    mkdir -p $projectname/src/main/resources/static
+    mkdir -p $projectname/src/test/java/$javapackagefolder
+
+    cat > $projectname/src/main/java/$javapackagefolder/Application.java <<DELIM
+package $javapackage;
+
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.annotation.ComponentScan;
+
+@ComponentScan
+@EnableAutoConfiguration
+public class Application {
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+
+}
+DELIM
+
+    cat > $projectname/src/test/java/$javapackagefolder/ApplicationTests.java <<DELIM
+package $javapackage;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = Application.class)
+@WebAppConfiguration
+public class ApplicationTests {
+
+    @Test
+    public void contextLoads() {
+    }
+
+}
+DELIM
+
+    cat > $projectname/build.gradle <<DELIM
+buildscript {
+    ext {
+        springBootVersion = '1.2.0.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'spring-boot'
+
+version = '1.0'
+def jarTitle = '$projectname'
+
+jar {
+    baseName = jarTitle
+    version = version
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "https://repo.spring.io/libs-release" }
+}
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-thymeleaf")
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+}
+
+eclipse {
+    classpath {
+         containers.remove('org.eclipse.jdt.launching.JRE_CONTAINER')
+         containers 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8'
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2.1'
+}
+DELIM
+
+    # Generate Sublime Text 3 Project File
+    gensublimeproject
+
+    # Generate Git Ignore File
+    gengitignore
+
+}
+
+function gensublimeproject {
+
+    cat > $projectname/$projectname.sublime-project <<DELIM
+{
+    "folders":
+    [
+        {
+            "follow_symlinks": true,
+            "path": "$currdir/$projectname",
+            "file_exclude_patterns": ["*.log", "*.iml", ".project", ".classpath", "*.sublime-project", "*.sublime-workspace", "*.class", "*.jar", "*.ear", "*.war"],
+            "folder_exclude_patterns": ["tmp", "log", ".*", "bin", "build"]
+        }
+    ]
+}
+DELIM
+
+}
+
+function gengitignore {
+
+    cat > $projectname/.gitignore <<DELIM
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# Intellij
+.idea/
+*.iml
+*.iws
+out/
+
+# Mac
+.DS_Store
+
+# Maven
+log/
+target/
+
+# Gradle
+.gradle/
+build/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Misc
+test*
+test/
+DELIM
+
+}
+
+function showusage {
+    echo "Usage: <app|webapp|smwebapp|sbwebapp> <java package under src/main/java> <top-level project name>"   
+}
+
+#Ensure we have the command-line parameters passed appropriately
+if [ -z "$1" ]; then ARG_ERR=ERR; fi
+if [ -z "$2" ]; then ARG_ERR=ERR; fi
+if [ -z "$3" ]; then ARG_ERR=ERR; fi
+if [ -n "$ARG_ERR" ];
+then
+    showusage
+    exit
+fi
+
+typename=$1
+javapackage=$2
+projectname=$3
+javapackagefolder=${javapackage//\./\/}
+currdir=`pwd`
+
+if [ $typename == "app" ]; then
+    setupapp
+elif [ $typename == "webapp" ]; then
+    setupwebapp
+elif [ $typename == "smwebapp" ]; then
+    setupsmwebapp
+elif [ $typename == "sbwebapp" ]; then
+    setupsbwebapp
+else
+    echo "Undefined Java App Type"
+    showusage
+fi
