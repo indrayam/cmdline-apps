@@ -13,7 +13,7 @@ apply plugin: 'application'
 group = '$javapackage'
 archivesBaseName = '$projectname'
 version = '1.0.0-SNAPSHOT'
-mainClassName = '$javapackage.TBD'
+mainClassName = '$javapackage.$projectname'
 
 repositories {
     mavenCentral()
@@ -41,6 +41,66 @@ task fatJar(type: Jar) {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
+DELIM
+
+
+    cat > $projectname/pom.xml <<DELIM
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+    http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>$javapackage</groupId>
+    <artifactId>$projectname</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>$projectname</name>
+    <url>http://maven.apache.org</url>
+    
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+      <plugins>
+        <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.2</version>
+        <!-- nothing here -->
+        </plugin>
+        <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>$javapackage.$projectname</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+        </plugin>
+      </plugins>
+    </build>
+
+</project>
 DELIM
 
     # Generate Sublime Text 3 Project File
@@ -401,7 +461,7 @@ function showusage {
     echo "Usage: <app|webapp|mvcwebapp|sbwebapp> <java package under src/main/java> <top-level project name>" 
     echo "webapp = Standard Servlet based Java Web Application"  
     echo "mvcwebapp = Spring MVC based Java Web Application"
-    echo "sbwebapp" = Spring Boot based Java Web Application"
+    echo "sbwebapp = Spring Boot based Java Web Application"
 }
 
 #Ensure we have the command-line parameters passed appropriately
