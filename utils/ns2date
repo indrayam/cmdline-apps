@@ -1,0 +1,10 @@
+#!/usr/bin/perl -w
+#
+$num_of_args = $#ARGV + 1;
+if ($num_of_args != 1) {
+    print "Usage: ns2date <epochtime in nanoseconds>\n";
+      exit;
+}
+
+$ns = $ARGV[0];
+print scalar localtime($ns / 1000000000) . "\n";
