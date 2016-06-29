@@ -1,0 +1,38 @@
+#!/bin/bash
+
+function gensublimeproject {
+
+    cat > $projectname.sublime-project <<DELIM
+{
+    "folders":
+    [
+        {
+            "follow_symlinks": true,
+            "path": "$currdir/$projectname",
+            "file_exclude_patterns": ["*.log", "*.iml", ".project", ".classpath", "*.sublime-project", "*.sublime-workspace", "*.class", "*.jar", "*.ear", "*.war"],
+            "folder_exclude_patterns": ["tmp", "log", ".*", "bin", "build"]
+        }
+    ]
+}
+DELIM
+
+}
+
+
+function showusage {
+    echo "Usage: createstproject projectname" 
+}
+
+#Ensure we have the command-line parameters passed appropriately
+if [ -z "$1" ]; then ARG_ERR=ERR; fi
+if [ -n "$ARG_ERR" ];
+then
+    showusage
+    exit
+fi
+
+projectname=$1
+javapackagefolder=${javapackage//\./\/}
+currdir=`pwd`
+gensublimeproject
+
