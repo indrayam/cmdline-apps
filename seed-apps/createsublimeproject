@@ -20,7 +20,7 @@ DELIM
 
 
 function showusage {
-    echo "Usage: createstproject projectname" 
+    echo "Usage: createsublimeproject projectname" 
 }
 
 #Ensure we have the command-line parameters passed appropriately
