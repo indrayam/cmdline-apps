@@ -10,7 +10,7 @@ function gensublimeproject {
             "follow_symlinks": true,
             "path": "$currdir",
             "file_exclude_patterns": ["*.log", "*.iml", ".project", ".classpath", "*.sublime-project", "*.sublime-workspace", "*.class", "*.jar", "*.ear", "*.war"],
-            "folder_exclude_patterns": ["tmp", "log", ".*", "bin", "build"]
+            "folder_exclude_patterns": ["tmp", "log", ".*", "bin", "build", "out"]
         }
     ]
 }
@@ -32,7 +32,6 @@ then
 fi
 
 projectname=$1
-javapackagefolder=${javapackage//\./\/}
 currdir=`pwd`
 gensublimeproject
 
